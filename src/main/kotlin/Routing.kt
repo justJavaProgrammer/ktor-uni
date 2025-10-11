@@ -9,6 +9,7 @@ import com.odeyalo.model.*
 fun Application.configureRouting() {
     routing {
         get("/tasks") {
+            val tasks = TaskRepository.allTasks()
             call.respondText(
                 contentType = ContentType.parse("text/html"),
                 text = tasks.tasksAsTable()
