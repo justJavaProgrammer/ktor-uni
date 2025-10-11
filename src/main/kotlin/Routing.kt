@@ -6,9 +6,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import com.odeyalo.model.*
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.http.content.staticResources
+import io.ktor.server.request.receiveParameters
 
 fun Application.configureRouting() {
     routing {
+        staticResources("/task-ui", "task-ui")
         get("/tasks") {
             val tasks = TaskRepository.allTasks()
             call.respondText(
@@ -16,6 +19,7 @@ fun Application.configureRouting() {
                 text = tasks.tasksAsTable()
             )
         }
+
         get("/tasks/byPriority/{priority?}") {
             val priorityAsText = call.parameters["priority"]
             if (priorityAsText == null) {
@@ -37,6 +41,38 @@ fun Application.configureRouting() {
                     text = tasks.tasksAsTable()
                 )
             } catch(ex: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest)
+            }
+        }
+
+        post("/tasks") {
+            val formContent = call.receiveParameters()
+
+            val params = Triple(
+                formContent["name"] ?: "",
+                formContent["description"] ?: "",
+                formContent["priority"] ?: ""
+            )
+
+            if (params.toList().any { it.isEmpty() }) {
+                call.respond(HttpStatusCode.BadRequest)
+                return@post
+            }
+
+            try {
+                val priority = Priority.valueOf(params.third)
+                TaskRepository.addTask(
+                    Task(
+                        params.first,
+                        params.second,
+                        priority
+                    )
+                )
+
+                call.respond(HttpStatusCode.NoContent)
+            } catch (ex: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest)
+            } catch (ex: IllegalStateException) {
                 call.respond(HttpStatusCode.BadRequest)
             }
         }
