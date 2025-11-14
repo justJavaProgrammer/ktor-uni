@@ -24,5 +24,6 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("io.ktor:ktor-client-content-negotiation")
+    testImplementation("com.jayway.jsonpath:json-path:2.9.0")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
