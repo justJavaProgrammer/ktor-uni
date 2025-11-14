@@ -6,8 +6,12 @@ import com.odeyalo.model.TaskRepository
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
+import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.serialization.*
+import io.ktor.server.request.*
+import kotlinx.serialization.SerializationException
 
 fun Application.configureRouting() {
     routing {
@@ -49,6 +53,18 @@ fun Application.configureRouting() {
                     }
                     call.respond(tasks)
                 } catch (ex: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            }
+
+            post {
+                try {
+                    val task = call.receive<Task>()
+                    TaskRepository.addTask(task)
+                    call.respond(HttpStatusCode.Created)
+                } catch (ex: IllegalStateException) {
+                    call.respond(HttpStatusCode.BadRequest)
+                } catch (ex: SerializationException) {
                     call.respond(HttpStatusCode.BadRequest)
                 }
             }
